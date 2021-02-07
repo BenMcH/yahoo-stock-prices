@@ -3,7 +3,7 @@ Deno API to scrape stock prices from Yahoo Finance. Directly ported over from th
 
 # Installation
 
-import the raw file from this github repo
+`import * as yahoo from 'https://deno.land/x/yahoo_stock_prices@0.0.1/yahoo-stock-prices.js';`
 # Usage
 
 ## getCurrentData
