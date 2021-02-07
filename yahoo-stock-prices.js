@@ -51,12 +51,7 @@ export const getHistoricalPrices = async function (
  */
 export const getCurrentData = function (ticker) {
     return new Promise((resolve, reject) => {
-        request(`${baseUrl + ticker}/`, (err, res, body) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
+        return fetch(`${baseUrl + ticker}/`).then((response) => response.text()).then((body) => {
             try {
                 let price = body.split(`"${ticker}":{"sourceInterval"`)[1]
                     .split('regularMarketPrice')[1]
