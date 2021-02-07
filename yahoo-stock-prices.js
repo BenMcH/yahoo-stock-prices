@@ -1,5 +1,3 @@
-const request = require('request');
-
 const baseUrl = 'https://finance.yahoo.com/quote/';
 
 /**
@@ -15,7 +13,7 @@ const baseUrl = 'https://finance.yahoo.com/quote/';
  *
  * @return {Promise<{date: number, open: number, high:number, low:number, close:number, volume:number, adjclose:number}[]>|undefined} Returns a promise if no callback was supplied.
  */
-const getHistoricalPrices = function (
+export const getHistoricalPrices = async function (
     startMonth,
     startDay,
     startYear,
@@ -29,31 +27,20 @@ const getHistoricalPrices = function (
     const startDate = Math.floor(Date.UTC(startYear, startMonth, startDay, 0, 0, 0) / 1000);
     const endDate = Math.floor(Date.UTC(endYear, endMonth, endDay, 0, 0, 0) / 1000);
 
-    const promise = new Promise((resolve, reject) => {
-        request(`${baseUrl + ticker}/history?period1=${startDate}&period2=${endDate}&interval=${frequency}&filter=history&frequency=${frequency}`, (err, res, body) => {
-            if (err) {
-                reject(err);
-                return;
-            }
+    const response = await fetch(`${baseUrl + ticker}/history?period1=${startDate}&period2=${endDate}&interval=${frequency}&filter=history&frequency=${frequency}`);
 
-            try {
-                const prices = JSON.parse(body.split('HistoricalPriceStore\":{\"prices\":')[1].split(',"isPending')[0]);
+    if (!response.ok) {
+        throw new Error('Not OK!');
+    }
 
-                resolve(prices);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    });
+    const body = await response.text();
 
-    // If a callback function was supplied return the result to the callback.
-    // Otherwise return a promise.
-    if (typeof callback === 'function') {
-        promise
-            .then((price) => callback(null, price))
-            .catch((err) => callback(err));
-    } else {
-        return promise;
+    try {
+        const prices = JSON.parse(body.split('HistoricalPriceStore\":{\"prices\":')[1].split(',"isPending')[0]);
+
+        return prices
+    } catch (err) {
+        throw err;
     }
 };
 
@@ -62,7 +49,7 @@ const getHistoricalPrices = function (
  *
  * @return {Promise<{price: number, currency: string}>}
  */
-const getCurrentData = function (ticker) {
+export const getCurrentData = function (ticker) {
     return new Promise((resolve, reject) => {
         request(`${baseUrl + ticker}/`, (err, res, body) => {
             if (err) {
@@ -101,7 +88,7 @@ const getCurrentData = function (ticker) {
  *
  * @return {Promise<number>|undefined} Returns a promise if no callback was supplied.
  */
-const getCurrentPrice = function (ticker, callback) {
+export const getCurrentPrice = function (ticker, callback) {
     if (callback) {
         getCurrentData(ticker)
             .then((data) => callback(null, data.price))
@@ -110,10 +97,4 @@ const getCurrentPrice = function (ticker, callback) {
         return getCurrentData(ticker)
             .then((data) => data.price);
     }
-};
-
-module.exports = {
-    getHistoricalPrices,
-    getCurrentData,
-    getCurrentPrice,
 };
